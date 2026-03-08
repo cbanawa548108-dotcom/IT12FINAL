@@ -47,9 +47,9 @@
         <thead>
             <tr class="border-b-2 border-gray-400">
                 <th class="py-2">Item</th>
-                <th class="py-2 text-center">Qty</th>
-                <th class="py-2 text-right">Price</th>
-                <th class="py-2 text-right">Amount</th>
+                <th class="py-2 text-center">Kilo</th>
+                <th class="py-2 text-right">Price/kg</th>
+                <th class="py-2 text-right">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -61,9 +61,9 @@
                         <small class="text-gray-600">{{ $detail->product->variety }}</small>
                     @endif
                 </td>
-                <td class="py-2 text-center">{{ $detail->Quantity }} kg</td>
-                <td class="py-2 text-right">₱{{ number_format($detail->unit_price, 2) }}</td>
-                <td class="py-2 text-right font-semibold">₱{{ number_format($detail->Quantity * $detail->unit_price, 2) }}</td>
+                <td class="py-2 text-center">{{ $detail->Kilo }} kg</td>
+                <td class="py-2 text-right">₱{{ number_format($detail->Price, 2) }}</td>
+                <td class="py-2 text-right font-semibold">₱{{ number_format($detail->Kilo * $detail->Price, 2) }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -124,7 +124,6 @@
         .print\:hidden {
             display: none !important;
         }
-        /* Ensure clean print layout */
         @page {
             margin: 1cm;
         }

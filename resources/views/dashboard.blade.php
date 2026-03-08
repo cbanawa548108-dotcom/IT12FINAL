@@ -5,11 +5,10 @@
 
 @section('content')
 
-
 <!-- Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
     <!-- Total Products Card -->
-    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-green-600">
+    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-blue-600">
         <div class="flex justify-between items-start">
             <div>
                 <h3 class="text-gray-600 text-sm font-semibold uppercase mb-2">Total Products</h3>
@@ -27,7 +26,7 @@
     </div>
 
     <!-- Total Customers Card -->
-    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-green-600">
+    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-purple-600">
         <div class="flex justify-between items-start">
             <h3 class="text-gray-600 text-sm font-semibold uppercase mb-2">Total Customers</h3>
             <p class="text-4xl font-bold text-gray-800">{{ $totalCustomers ?? 0 }}</p>
@@ -35,7 +34,7 @@
     </div>
 
     <!-- Total Suppliers Card -->
-    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-green-600">
+    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-indigo-600">
         <div class="flex justify-between items-start">
             <h3 class="text-gray-600 text-sm font-semibold uppercase mb-2">Total Suppliers</h3>
             <p class="text-4xl font-bold text-gray-800">{{ $totalSuppliers ?? 0 }}</p>
@@ -43,7 +42,7 @@
     </div>
 
     <!-- Total Sales Card -->
-    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-green-600">
+    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-teal-600">
         <div class="flex justify-between items-start">
             <h3 class="text-gray-600 text-sm font-semibold uppercase mb-2">Total Sales</h3>
             <p class="text-4xl font-bold text-gray-800">{{ $totalSales ?? 0 }}</p>
@@ -53,8 +52,7 @@
 
 <!-- Revenue Cards -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <!-- Today's Revenue -->
-    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-green-600">
+    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-emerald-600">
         <div class="flex justify-between items-start">
             <div>
                 <h3 class="text-gray-600 text-sm font-semibold uppercase mb-2">Today's Revenue</h3>
@@ -64,22 +62,18 @@
         </div>
     </div>
 
-    <!-- This Week -->
-    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-green-600">
+    <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-cyan-600">
         <div class="flex justify-between items-start">
             <div>
                 <h3 class="text-gray-600 text-sm font-semibold uppercase mb-2">This Week</h3>
                 <p class="text-gray-500 text-xs mt-2">
-                    {{ \Carbon\Carbon::now()->startOfWeek()->format('M d') }}
-                    -
-                    {{ \Carbon\Carbon::now()->endOfWeek()->format('M d') }}
+                    {{ \Carbon\Carbon::now()->startOfWeek()->format('M d') }} - {{ \Carbon\Carbon::now()->endOfWeek()->format('M d') }}
                 </p>
             </div>
             <p class="text-4xl font-bold text-gray-800">₱{{ number_format($weekRevenue ?? 0, 2) }}</p>
         </div>
     </div>
 
-    <!-- This Month -->
     <div class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-green-600">
         <div class="flex justify-between items-start">
             <div>
@@ -91,9 +85,38 @@
     </div>
 </div>
 
+<!-- ✅ Admin Security Buttons -->
+@if(auth()->user()->role === 'admin')
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <a href="{{ route('blocked-ips.index') }}"
+       class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-red-600 hover:shadow-xl transition flex items-center group">
+        <div class="bg-red-100 p-4 rounded-full mr-4 group-hover:bg-red-200 transition">
+            <span class="material-icons text-red-600" style="font-size: 36px;">block</span>
+        </div>
+        <div>
+            <h3 class="text-gray-800 font-bold text-lg">IP Blocking</h3>
+            <p class="text-gray-500 text-sm">Manage blocked IP addresses</p>
+        </div>
+        <span class="material-icons ml-auto text-gray-400 group-hover:text-red-500 transition">arrow_forward</span>
+    </a>
+
+    <a href="{{ route('password-change-logs.index') }}"
+       class="bg-white p-6 rounded-lg shadow-lg border-l-4 border-blue-600 hover:shadow-xl transition flex items-center group">
+        <div class="bg-blue-100 p-4 rounded-full mr-4 group-hover:bg-blue-200 transition">
+            <span class="material-icons text-blue-600" style="font-size: 36px;">lock_reset</span>
+        </div>
+        <div>
+            <h3 class="text-gray-800 font-bold text-lg">Password Change Logs</h3>
+            <p class="text-gray-500 text-sm">View all password change history</p>
+        </div>
+        <span class="material-icons ml-auto text-gray-400 group-hover:text-blue-500 transition">arrow_forward</span>
+    </a>
+</div>
+@endif
+
 <!-- Charts Row -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    <!-- Revenue Chart with Filters -->
+    <!-- Revenue Chart -->
     <div class="bg-white p-6 rounded-lg shadow-lg">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-gray-800 font-bold text-xl flex items-center">
@@ -105,10 +128,8 @@
             </h3>
         </div>
 
-        {{-- FILTER BAR --}}
         <div class="mb-4 border rounded-lg p-3 bg-gray-50">
             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <!-- Date range (UI only for now) -->
                 <div class="flex gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Date from</label>
@@ -121,21 +142,16 @@
                                class="px-3 py-2 text-xs md:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                     </div>
                 </div>
-
-                <!-- Quick filter buttons -->
                 <div class="flex flex-wrap gap-2">
-                    <button type="button"
-                            data-range="daily"
+                    <button type="button" data-range="daily"
                             class="rev-quick-btn px-3 py-1.5 text-xs md:text-sm rounded-full border border-green-500 text-green-600 bg-white hover:bg-green-50">
                         Today
                     </button>
-                    <button type="button"
-                            data-range="weekly"
+                    <button type="button" data-range="weekly"
                             class="rev-quick-btn px-3 py-1.5 text-xs md:text-sm rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100">
                         This Week
                     </button>
-                    <button type="button"
-                            data-range="monthly"
+                    <button type="button" data-range="monthly"
                             class="rev-quick-btn px-3 py-1.5 text-xs md:text-sm rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100">
                         This Month
                     </button>
@@ -143,7 +159,6 @@
             </div>
         </div>
 
-        <!-- Tab Buttons (stay for clarity) -->
         <div class="flex gap-2 mb-4 border-b">
             <button onclick="showChart('daily')" id="dailyTab"
                     class="px-4 py-2 font-semibold text-green-600 border-b-2 border-green-600 transition-all">
@@ -167,7 +182,7 @@
     <!-- Top Selling Products -->
     <div class="bg-white p-6 rounded-lg shadow-lg">
         <h3 class="text-gray-800 font-bold text-xl mb-4 flex items-center">
-            <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
             </svg>
@@ -176,10 +191,19 @@
         @if($topProducts && $topProducts->count() > 0)
             <div class="space-y-4">
                 @foreach($topProducts as $index => $product)
+                    @php
+                        $colors = [
+                            ['from' => 'amber-500', 'to' => 'amber-700'],
+                            ['from' => 'blue-500', 'to' => 'blue-700'],
+                            ['from' => 'purple-500', 'to' => 'purple-700'],
+                            ['from' => 'pink-500', 'to' => 'pink-700'],
+                            ['from' => 'indigo-500', 'to' => 'indigo-700']
+                        ];
+                        $color = $colors[$index % count($colors)];
+                    @endphp
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-green-50 transition-colors">
                         <div class="flex items-center gap-3">
-                            <div
-                                class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-700 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                            <div class="w-10 h-10 bg-gradient-to-br from-{{ $color['from'] }} to-{{ $color['to'] }} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
                                 {{ $index + 1 }}
                             </div>
                             <div>
@@ -214,52 +238,37 @@
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
             <h3 class="text-gray-800 font-bold text-xl">Low Stock Alert</h3>
-            <span
-                class="ml-auto bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">{{ $lowStockProducts->count() }} Items</span>
+            <span class="ml-auto bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">{{ $lowStockProducts->count() }} Items</span>
         </div>
-
         <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead class="bg-gray-50 border-b-2 border-gray-200">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Product</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Current Stock</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Price</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                </tr>
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                    </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                @foreach($lowStockProducts as $product)
-                    <tr class="hover:bg-red-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">
-                            {{ $product->name }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span
-                                class="text-red-600 font-bold text-lg">{{ $product->stock_quantity ?? $product->Quantity_in_Stock }}</span>
-                            <span class="text-gray-500 text-sm ml-1">units</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 font-medium">
-                            ₱{{ number_format($product->unit_price ?? 0, 2) }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @php
-                                $qty = $product->stock_quantity ?? $product->Quantity_in_Stock;
-                            @endphp
-                            @if($qty <= 5)
-                                <span
-                                    class="px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 border border-red-200">
-                                    🚨 CRITICAL
-                                </span>
-                            @else
-                                <span
-                                    class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                    ⚠️ LOW
-                                </span>
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
+                    @foreach($lowStockProducts as $product)
+                        <tr class="hover:bg-red-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">{{ $product->name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-red-600 font-bold text-lg">{{ $product->stock_quantity ?? $product->Quantity_in_Stock }}</span>
+                                <span class="text-gray-500 text-sm ml-1">units</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700 font-medium">₱{{ number_format($product->unit_price ?? 0, 2) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @php $qty = $product->stock_quantity ?? $product->Quantity_in_Stock; @endphp
+                                @if($qty <= 5)
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 border border-red-200">🚨 CRITICAL</span>
+                                @else
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">⚠️ LOW</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -277,17 +286,13 @@
             </svg>
             <h3 class="text-red-600 font-bold text-xl">Expired Products</h3>
         </div>
-
         @if($expiredProducts && $expiredProducts->count() > 0)
             <div class="space-y-3 max-h-80 overflow-y-auto">
                 @foreach($expiredProducts as $product)
-                    <div
-                        class="flex justify-between items-center p-4 bg-red-50 rounded-lg border-l-4 border-red-600 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-center p-4 bg-red-50 rounded-lg border-l-4 border-red-600 hover:shadow-md transition-shadow">
                         <div>
                             <p class="font-bold text-gray-800">{{ $product->Product_Name }}</p>
-                            <p class="text-sm text-gray-600 mt-1">
-                                Expired: {{ \Carbon\Carbon::parse($product->expiry_date)->format('M d, Y') }}
-                            </p>
+                            <p class="text-sm text-gray-600 mt-1">Expired: {{ \Carbon\Carbon::parse($product->expiry_date)->format('M d, Y') }}</p>
                             <p class="text-xs text-gray-500 mt-1">Stock: {{ $product->Quantity_in_Stock }} units</p>
                         </div>
                         <span class="text-red-700 font-bold text-sm px-4 py-2 bg-red-200 rounded-lg">EXPIRED</span>
@@ -297,15 +302,14 @@
         @else
             <div class="text-center py-12">
                 <svg class="w-16 h-16 mx-auto text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <p class="text-gray-500 mt-4 font-medium">No expired products</p>
             </div>
         @endif
     </div>
 
-    <!-- Expiring Soon Products -->
+    <!-- Expiring Soon -->
     <div class="bg-white p-6 rounded-lg shadow-lg">
         <div class="flex items-center gap-2 mb-6">
             <svg class="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -314,17 +318,13 @@
             </svg>
             <h3 class="text-orange-600 font-bold text-xl">Expiring Soon (Within 7 Days)</h3>
         </div>
-
         @if($expiringSoonProducts && $expiringSoonProducts->count() > 0)
             <div class="space-y-3 max-h-80 overflow-y-auto">
                 @foreach($expiringSoonProducts as $product)
-                    <div
-                        class="flex justify-between items-center p-4 bg-orange-50 rounded-lg border-l-4 border-orange-600 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-center p-4 bg-orange-50 rounded-lg border-l-4 border-orange-600 hover:shadow-md transition-shadow">
                         <div>
                             <p class="font-bold text-gray-800">{{ $product->Product_Name }}</p>
-                            <p class="text-sm text-gray-600 mt-1">
-                                Expires: {{ \Carbon\Carbon::parse($product->expiry_date)->format('M d, Y') }}
-                            </p>
+                            <p class="text-sm text-gray-600 mt-1">Expires: {{ \Carbon\Carbon::parse($product->expiry_date)->format('M d, Y') }}</p>
                             <p class="text-xs text-gray-500 mt-1">Stock: {{ $product->Quantity_in_Stock }} units</p>
                         </div>
                         <span class="text-orange-700 font-bold text-sm px-4 py-2 bg-orange-200 rounded-lg">
@@ -336,8 +336,7 @@
         @else
             <div class="text-center py-12">
                 <svg class="w-16 h-16 mx-auto text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <p class="text-gray-500 mt-4 font-medium">No products expiring soon</p>
             </div>
@@ -345,23 +344,13 @@
     </div>
 </div>
 
-<!-- Chart.js Script -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
-    // Data from Laravel
     const chartData = {
-        daily: {
-            labels: @json($dailyLabels ?? []),
-            data: @json($dailyData ?? [])
-        },
-        weekly: {
-            labels: @json($weeklyLabels ?? []),
-            data: @json($weeklyRevenue ?? [])
-        },
-        monthly: {
-            labels: @json($monthlyLabels ?? []),
-            data: @json($monthlyRevenue ?? [])
-        }
+        daily:   { labels: @json($dailyLabels ?? []),   data: @json($dailyData ?? []) },
+        weekly:  { labels: @json($weeklyLabels ?? []),  data: @json($weeklyRevenue ?? []) },
+        monthly: { labels: @json($monthlyLabels ?? []), data: @json($monthlyRevenue ?? []) }
     };
 
     let revenueChart = null;
@@ -369,10 +358,7 @@
 
     function createChart(type) {
         const ctx = document.getElementById('revenueChart').getContext('2d');
-
-        if (revenueChart) {
-            revenueChart.destroy();
-        }
+        if (revenueChart) revenueChart.destroy();
 
         revenueChart = new Chart(ctx, {
             type: 'line',
@@ -397,25 +383,13 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        backgroundColor: 'rgba(0,0,0,0.8)',
                         padding: 12,
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
                         callbacks: {
-                            label: function (context) {
-                                return 'Revenue: ₱' + context.parsed.y.toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
+                            label: function(context) {
+                                return 'Revenue: ₱' + context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             }
                         }
                     }
@@ -423,28 +397,10 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            callback: function (value) {
-                                return '₱' + value.toLocaleString();
-                            },
-                            font: {
-                                size: 12
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
+                        ticks: { callback: function(value) { return '₱' + value.toLocaleString(); } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
                     },
-                    x: {
-                        ticks: {
-                            font: {
-                                size: 12
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
+                    x: { grid: { display: false } }
                 }
             }
         });
@@ -453,25 +409,17 @@
     function showChart(type) {
         currentView = type;
         createChart(type);
-
-        // Update tab styles
         const tabs = ['dailyTab', 'weeklyTab', 'monthlyTab'];
         const types = ['daily', 'weekly', 'monthly'];
-
         tabs.forEach((tabId, index) => {
             const tab = document.getElementById(tabId);
-            if (types[index] === type) {
-                tab.className = 'px-4 py-2 font-semibold text-green-600 border-b-2 border-green-600 transition-all';
-            } else {
-                tab.className = 'px-4 py-2 font-semibold text-gray-600 hover:text-green-600 transition-all';
-            }
+            tab.className = types[index] === type
+                ? 'px-4 py-2 font-semibold text-green-600 border-b-2 border-green-600 transition-all'
+                : 'px-4 py-2 font-semibold text-gray-600 hover:text-green-600 transition-all';
         });
-
-        // sync quick buttons highlighting
         highlightQuickButton(type);
     }
 
-    // Quick filter buttons logic (UI + chart switch)
     function highlightQuickButton(range) {
         document.querySelectorAll('.rev-quick-btn').forEach(btn => {
             if (btn.dataset.range === range) {
@@ -485,36 +433,30 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Init chart
         createChart('daily');
         highlightQuickButton('daily');
 
-        // Quick buttons click
         document.querySelectorAll('.rev-quick-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const range = btn.dataset.range;
-                showChart(range);
-                // Optional: clear date pickers when using quick filters
+                showChart(btn.dataset.range);
                 document.getElementById('revFilterFrom').value = '';
                 document.getElementById('revFilterTo').value = '';
             });
         });
 
-        // Date range inputs (front-end only: just a visual cue)
-        const fromInput = document.getElementById('revFilterFrom');
-        const toInput = document.getElementById('revFilterTo');
-
-        function onDateChange() {
-            // Here you could send AJAX to load filtered data.
-            // For now, only change the quick button highlight to "none selected".
+        document.getElementById('revFilterFrom').addEventListener('change', () => {
             document.querySelectorAll('.rev-quick-btn').forEach(btn => {
                 btn.classList.remove('border-green-500', 'text-green-600', 'bg-green-50');
                 btn.classList.add('border-gray-300', 'text-gray-600', 'bg-white');
             });
-        }
+        });
 
-        fromInput.addEventListener('change', onDateChange);
-        toInput.addEventListener('change', onDateChange);
+        document.getElementById('revFilterTo').addEventListener('change', () => {
+            document.querySelectorAll('.rev-quick-btn').forEach(btn => {
+                btn.classList.remove('border-green-500', 'text-green-600', 'bg-green-50');
+                btn.classList.add('border-gray-300', 'text-gray-600', 'bg-white');
+            });
+        });
     });
 </script>
 @endsection

@@ -44,6 +44,13 @@
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white" id="customersTableBody">
                 @foreach($customers as $customer)
+                    @php
+                        $phone = $customer->Contact_Number;
+                        $masked = $phone
+                            ? substr($phone, 0, 3) . str_repeat('*', max(strlen($phone) - 6, 3)) . substr($phone, -3)
+                            : null;
+                    @endphp
+
                     @if($customer->sales && $customer->sales->count() > 0)
                         @foreach($customer->sales as $sale)
                             <tr class="hover:bg-green-50 transition customer-row"
@@ -53,7 +60,39 @@
                                 data-status="{{ strtolower($sale->status) }}">
                                 
                                 <td class="py-3 px-4 text-sm text-gray-800">{{ $customer->Customer_Name }}</td>
-                                <td class="py-3 px-4 text-sm text-gray-700">{{ $customer->Contact_Number }}</td>
+
+                                <td class="py-3 px-4 text-sm text-gray-700">
+                                    @if($phone)
+                                        <span class="masked-number font-mono tracking-wide"
+                                              data-real="{{ $phone }}"
+                                              data-masked="{{ $masked }}">
+                                            {{ $masked }}
+                                        </span>
+                                        <button type="button"
+                                                onclick="togglePhone(this)"
+                                                class="ml-1 text-gray-400 hover:text-green-600 transition"
+                                                title="Show/Hide number">
+                                            <svg class="w-4 h-4 inline eye-show" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943
+                                                       9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            <svg class="w-4 h-4 inline eye-hide hidden" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7
+                                                       a9.956 9.956 0 012.293-3.95M6.696 6.696A9.953 9.953 0 0112 5
+                                                       c4.477 0 8.268 2.943 9.542 7a9.973 9.973 0 01-4.138 5.169M3 3l18 18" />
+                                            </svg>
+                                        </button>
+                                    @else
+                                        <span class="text-gray-400 italic">N/A</span>
+                                    @endif
+                                </td>
+
                                 <td class="py-3 px-4 text-sm text-gray-700">{{ $sale->receipt_number }}</td>
                                 <td class="py-3 px-4 text-sm font-semibold text-gray-800">₱{{ number_format($sale->total_amount, 2) }}</td>
                                 <td class="py-3 px-4">
@@ -70,7 +109,6 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
                                     </a>
-
                                     <a href="{{ route('customers.edit', $customer->Customer_ID) }}" 
                                        class="text-yellow-600 hover:text-yellow-700 transition transform hover:scale-110"
                                        title="Edit">
@@ -78,7 +116,6 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.25 2.25 0 113.182 3.183L7.5 19.215 3 21l1.784-4.5 12.078-13.013z" />
                                         </svg>
                                     </a>
-
                                     <form action="{{ route('customers.destroy', $customer->Customer_ID) }}" method="POST"
                                           onsubmit="return confirm('Are you sure you want to archive this customer? You can restore it later from the archive.')">
                                         @csrf
@@ -102,7 +139,39 @@
                             data-status="no-purchase">
                             
                             <td class="py-3 px-4 text-sm text-gray-800">{{ $customer->Customer_Name }}</td>
-                            <td class="py-3 px-4 text-sm text-gray-700">{{ $customer->Contact_Number }}</td>
+
+                            <td class="py-3 px-4 text-sm text-gray-700">
+                                @if($phone)
+                                    <span class="masked-number font-mono tracking-wide"
+                                          data-real="{{ $phone }}"
+                                          data-masked="{{ $masked }}">
+                                        {{ $masked }}
+                                    </span>
+                                    <button type="button"
+                                            onclick="togglePhone(this)"
+                                            class="ml-1 text-gray-400 hover:text-green-600 transition"
+                                            title="Show/Hide number">
+                                        <svg class="w-4 h-4 inline eye-show" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943
+                                                   9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        <svg class="w-4 h-4 inline eye-hide hidden" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7
+                                                   a9.956 9.956 0 012.293-3.95M6.696 6.696A9.953 9.953 0 0112 5
+                                                   c4.477 0 8.268 2.943 9.542 7a9.973 9.973 0 01-4.138 5.169M3 3l18 18" />
+                                        </svg>
+                                    </button>
+                                @else
+                                    <span class="text-gray-400 italic">N/A</span>
+                                @endif
+                            </td>
+
                             <td class="py-3 px-4 text-sm text-gray-400 italic" colspan="3">No purchases yet</td>
                             <td class="py-3 px-4 flex gap-3">
                                 <a href="{{ route('customers.show', $customer->Customer_ID) }}" 
@@ -113,7 +182,6 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                 </a>
-
                                 <a href="{{ route('customers.edit', $customer->Customer_ID) }}" 
                                    class="text-yellow-600 hover:text-yellow-700 transition transform hover:scale-110"
                                    title="Edit">
@@ -121,7 +189,6 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.25 2.25 0 113.182 3.183L7.5 19.215 3 21l1.784-4.5 12.078-13.013z" />
                                     </svg>
                                 </a>
-
                                 <form action="{{ route('customers.destroy', $customer->Customer_ID) }}" method="POST"
                                       onsubmit="return confirm('Are you sure you want to archive this customer? You can restore it later from the archive.')">
                                     @csrf
@@ -152,27 +219,26 @@
                 <button id="mobilePrevBtn" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</button>
                 <button id="mobileNextBtn" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</button>
             </div>
-            
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm text-gray-700">
-                        Showing <span class="font-medium" id="pageStart">1</span> to <span class="font-medium" id="pageEnd">10</span> of <span class="font-medium" id="totalItems">0</span> results
+                        Showing <span class="font-medium" id="pageStart">1</span> to 
+                        <span class="font-medium" id="pageEnd">10</span> of 
+                        <span class="font-medium" id="totalItems">0</span> results
                     </p>
                 </div>
                 <div>
                     <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                         <button id="prevBtn" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                             <span class="sr-only">Previous</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                             </svg>
                         </button>
-                        
                         <div id="numberedButtonsContainer" class="flex"></div>
-
                         <button id="nextBtn" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                             <span class="sr-only">Next</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                             </svg>
                         </button>
@@ -185,139 +251,106 @@
 </div>
 
 <script>
+function togglePhone(btn) {
+    const span = btn.previousElementSibling;
+    const eyeShow = btn.querySelector('.eye-show');
+    const eyeHide = btn.querySelector('.eye-hide');
+    const isHidden = span.textContent.includes('*');
+
+    span.textContent = isHidden ? span.dataset.real : span.dataset.masked;
+    eyeShow.classList.toggle('hidden', isHidden);
+    eyeHide.classList.toggle('hidden', !isHidden);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const tableBody = document.getElementById('customersTableBody');
-    // Targeting all rows with the class 'customer-row'
-    const rows = Array.from(tableBody.querySelectorAll('tr.customer-row')); 
+    const rows = Array.from(tableBody.querySelectorAll('tr.customer-row'));
     const noResults = document.getElementById('noResults');
     const numberedButtonsContainer = document.getElementById('numberedButtonsContainer');
-    
-    // Pagination Config
+
     const itemsPerPage = 10;
     let currentPage = 1;
-    let filteredRows = rows; // Initially, all rows are visible
+    let filteredRows = rows;
 
-    // Elements
-    const pageStart = document.getElementById('pageStart');
-    const pageEnd = document.getElementById('pageEnd');
+    const pageStart  = document.getElementById('pageStart');
+    const pageEnd    = document.getElementById('pageEnd');
     const totalItems = document.getElementById('totalItems');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const mobilePrevBtn = document.getElementById('mobilePrevBtn');
-    const mobileNextBtn = document.getElementById('mobileNextBtn');
+    const prevBtn        = document.getElementById('prevBtn');
+    const nextBtn        = document.getElementById('nextBtn');
+    const mobilePrevBtn  = document.getElementById('mobilePrevBtn');
+    const mobileNextBtn  = document.getElementById('mobileNextBtn');
 
     function updateTable() {
-        const totalRows = filteredRows.length;
+        const totalRows  = filteredRows.length;
         const totalPages = Math.ceil(totalRows / itemsPerPage);
 
-        // Sanity Check
         if (currentPage < 1) currentPage = 1;
         if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
 
         const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
+        const end   = start + itemsPerPage;
 
-        // Hide ALL rows first
         rows.forEach(row => row.style.display = 'none');
 
-        // Show only visible rows for current page
         if (totalRows > 0) {
             filteredRows.slice(start, end).forEach(row => row.style.display = '');
             noResults.style.display = 'none';
         } else {
             noResults.style.display = '';
-            if (searchInput.value.trim() !== '') {
-                noResults.querySelector('td').textContent = 'No customers found matching "' + searchInput.value + '"';
-            } else {
-                noResults.querySelector('td').textContent = 'No customers found';
-            }
+            noResults.querySelector('td').textContent = searchInput.value.trim() !== ''
+                ? 'No customers found matching "' + searchInput.value + '"'
+                : 'No customers found';
         }
 
-        // Update Text Stats
         totalItems.textContent = totalRows;
-        pageStart.textContent = totalRows === 0 ? 0 : start + 1;
-        pageEnd.textContent = Math.min(end, totalRows);
+        pageStart.textContent  = totalRows === 0 ? 0 : start + 1;
+        pageEnd.textContent    = Math.min(end, totalRows);
 
-        // Button States
         const isFirst = currentPage === 1;
-        const isLast = currentPage === totalPages || totalPages === 0;
+        const isLast  = currentPage === totalPages || totalPages === 0;
 
-        prevBtn.disabled = isFirst;
-        mobilePrevBtn.disabled = isFirst;
-        nextBtn.disabled = isLast;
-        mobileNextBtn.disabled = isLast;
-
-        [prevBtn, nextBtn, mobilePrevBtn, mobileNextBtn].forEach(btn => {
-            if (btn.disabled) {
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
+        [prevBtn, mobilePrevBtn].forEach(btn => {
+            btn.disabled = isFirst;
+            btn.classList.toggle('opacity-50', isFirst);
+            btn.classList.toggle('cursor-not-allowed', isFirst);
+        });
+        [nextBtn, mobileNextBtn].forEach(btn => {
+            btn.disabled = isLast;
+            btn.classList.toggle('opacity-50', isLast);
+            btn.classList.toggle('cursor-not-allowed', isLast);
         });
 
-        // ---------------------------------------------
-        // DYNAMIC NUMBERED BUTTONS GENERATION
-        // ---------------------------------------------
-        numberedButtonsContainer.innerHTML = ''; // Reset
-
+        numberedButtonsContainer.innerHTML = '';
         for (let i = 1; i <= totalPages; i++) {
             const btn = document.createElement('button');
             btn.textContent = i;
-            let classes = "relative inline-flex items-center px-4 py-2 border text-sm font-medium";
-            
-            if (i === currentPage) {
-                // Active Page (Green for Customers Page)
-                classes += " z-10 bg-green-50 border-green-500 text-green-600";
-            } else {
-                // Inactive Page (White)
-                classes += " bg-white border-gray-300 text-gray-500 hover:bg-gray-50";
-            }
-            
-            btn.className = classes;
-            btn.addEventListener('click', function() {
-                currentPage = i;
-                updateTable();
-            });
-
+            btn.className = "relative inline-flex items-center px-4 py-2 border text-sm font-medium " +
+                (i === currentPage
+                    ? "z-10 bg-green-50 border-green-500 text-green-600"
+                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50");
+            btn.addEventListener('click', () => { currentPage = i; updateTable(); });
             numberedButtonsContainer.appendChild(btn);
         }
     }
 
-    // Prev/Next Logic
-    function changePage(delta) {
-        currentPage += delta;
-        updateTable();
-    }
+    prevBtn.addEventListener('click',       () => { currentPage--; updateTable(); });
+    nextBtn.addEventListener('click',       () => { currentPage++; updateTable(); });
+    mobilePrevBtn.addEventListener('click', () => { currentPage--; updateTable(); });
+    mobileNextBtn.addEventListener('click', () => { currentPage++; updateTable(); });
 
-    prevBtn.addEventListener('click', () => changePage(-1));
-    nextBtn.addEventListener('click', () => changePage(1));
-    mobilePrevBtn.addEventListener('click', () => changePage(-1));
-    mobileNextBtn.addEventListener('click', () => changePage(1));
-
-    // Search Logic
     searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        
-        // Filter rows based on criteria
+        const term = this.value.toLowerCase().trim();
         filteredRows = rows.filter(row => {
-            const customerName = row.getAttribute('data-customer-name') || '';
-            const contactNumber = row.getAttribute('data-contact-number') || '';
-            const receipt = row.getAttribute('data-receipt') || '';
-            const status = row.getAttribute('data-status') || '';
-            
-            return customerName.includes(searchTerm) || 
-                   contactNumber.includes(searchTerm) || 
-                   receipt.includes(searchTerm) ||
-                   status.includes(searchTerm);
+            return (row.getAttribute('data-customer-name') || '').includes(term) ||
+                   (row.getAttribute('data-contact-number') || '').includes(term) ||
+                   (row.getAttribute('data-receipt') || '').includes(term) ||
+                   (row.getAttribute('data-status') || '').includes(term);
         });
-
-        // Reset to Page 1 when searching
         currentPage = 1;
         updateTable();
     });
 
-    // Initialize
     updateTable();
 });
 </script>

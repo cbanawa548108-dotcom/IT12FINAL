@@ -91,7 +91,7 @@
                         <td class="py-3 px-4">
                             <div class="flex justify-center gap-2">
                                 <a href="{{ route('supplier-transactions.edit', $t->Supply_transac_ID) }}"
-                                   class="text-blue-600 hover:text-blue-800 transition transform hover:scale-110"
+                                   class="text-yellow-600 hover:text-yellow-800 transition transform hover:scale-110"
                                    title="Edit">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.25 2.25 0 113.182 3.183L7.5 19.215 3 21l1.784-4.5 12.078-13.013z" />

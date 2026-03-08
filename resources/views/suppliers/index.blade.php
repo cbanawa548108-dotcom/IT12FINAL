@@ -60,10 +60,50 @@
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white" id="suppliersTableBody">
                 @forelse($suppliers as $supplier)
-                <tr class="hover:bg-green-50 transition" data-supplier-name="{{ strtolower($supplier->Supplier_Name) }}" data-contact-person="{{ strtolower($supplier->contact_person) }}" data-contact-number="{{ $supplier->contact_number }}">
+                <tr class="hover:bg-green-50 transition" 
+                    data-supplier-name="{{ strtolower($supplier->Supplier_Name) }}" 
+                    data-contact-person="{{ strtolower($supplier->contact_person) }}" 
+                    data-contact-number="{{ $supplier->contact_number }}">
                     <td class="py-2 px-4 text-sm text-gray-800 font-medium">{{ $supplier->Supplier_Name }}</td>
                     <td class="py-2 px-4 text-sm text-gray-700">{{ $supplier->contact_person }}</td>
-                    <td class="py-2 px-4 text-sm text-gray-700">{{ $supplier->contact_number }}</td>
+
+                    <!-- ✅ Masked Contact Number -->
+                    <td class="py-2 px-4 text-sm text-gray-700">
+                        @if($supplier->contact_number)
+                            @php
+                                $phone = $supplier->contact_number;
+                                $masked = substr($phone, 0, 3) . str_repeat('*', max(strlen($phone) - 6, 3)) . substr($phone, -3);
+                            @endphp
+                            <span class="masked-number font-mono tracking-wide" 
+                                  data-real="{{ $supplier->contact_number }}"
+                                  data-masked="{{ $masked }}">
+                                {{ $masked }}
+                            </span>
+                            <button type="button"
+                                    onclick="togglePhone(this)"
+                                    class="ml-1 text-gray-400 hover:text-green-600 transition"
+                                    title="Show/Hide number">
+                                <svg class="w-4 h-4 inline eye-show" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943
+                                           9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg class="w-4 h-4 inline eye-hide hidden" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7
+                                           a9.956 9.956 0 012.293-3.95M6.696 6.696A9.953 9.953 0 0112 5
+                                           c4.477 0 8.268 2.943 9.542 7a9.973 9.973 0 01-4.138 5.169M3 3l18 18" />
+                                </svg>
+                            </button>
+                        @else
+                            <span class="text-gray-400 italic">N/A</span>
+                        @endif
+                    </td>
+
                     <td class="py-2 px-4 text-sm text-gray-700">{{ $supplier->address }}</td>
                     <td class="py-2 px-4 text-sm text-gray-700 font-semibold">{{ $supplier->payment_terms }}</td>
 
@@ -72,7 +112,7 @@
 
                         <!-- Edit Button -->
                         <a href="{{ route('suppliers.edit', $supplier->Supplier_ID) }}"
-                            class="text-yellow-600 hover:text-yellow-700 transition transform hover:scale-110"
+                            class="text-blue-600 hover:text-blue-700 transition transform hover:scale-110"
                             title="Edit">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 3.487a2.25 2.25 0 113.182 3.183L7.5 19.215 3 21l1.784-4.5 12.078-13.013z" />
@@ -84,7 +124,6 @@
                             onsubmit="return confirm('Are you sure you want to archive this supplier? You can restore it later from the archive.')">
                             @csrf
                             @method('DELETE')
-
                             <button type="submit"
                                 class="text-orange-600 hover:text-orange-700 transition transform hover:scale-110"
                                 title="Archive">
@@ -106,7 +145,7 @@
         </table>
     </div>
 
-    <!-- Pagination (if you're using pagination) -->
+    <!-- Pagination -->
     @if(method_exists($suppliers, 'links'))
     <div class="mt-4">
         {{ $suppliers->links() }}
@@ -115,27 +154,37 @@
 
 </div>
 
-<!-- Real-time Search Script -->
 <script>
+// ── Toggle show/hide phone number ─────────────────────────
+function togglePhone(btn) {
+    const span = btn.previousElementSibling;
+    const eyeShow = btn.querySelector('.eye-show');
+    const eyeHide = btn.querySelector('.eye-hide');
+    const isHidden = span.textContent.includes('*');
+
+    span.textContent = isHidden ? span.dataset.real : span.dataset.masked;
+    eyeShow.classList.toggle('hidden', isHidden);
+    eyeHide.classList.toggle('hidden', !isHidden);
+}
+
+// ── Real-time search ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const tableBody = document.getElementById('suppliersTableBody');
     const rows = tableBody.querySelectorAll('tr:not(#noResults)');
     const noResults = document.getElementById('noResults');
-    
-    // Real-time search as you type
+
     searchInput.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase().trim();
         let visibleCount = 0;
-        
+
         rows.forEach(row => {
-            const supplierName = row.getAttribute('data-supplier-name') || '';
-            const contactPerson = row.getAttribute('data-contact-person') || '';
-            const contactNumber = row.getAttribute('data-contact-number') || '';
-            
-            // Check if search term matches any field
-            if (supplierName.includes(searchTerm) || 
-                contactPerson.includes(searchTerm) || 
+            const supplierName   = row.getAttribute('data-supplier-name') || '';
+            const contactPerson  = row.getAttribute('data-contact-person') || '';
+            const contactNumber  = row.getAttribute('data-contact-number') || '';
+
+            if (supplierName.includes(searchTerm) ||
+                contactPerson.includes(searchTerm) ||
                 contactNumber.includes(searchTerm)) {
                 row.style.display = '';
                 visibleCount++;
@@ -143,8 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.style.display = 'none';
             }
         });
-        
-        // Show/hide no results message
+
         if (noResults) {
             if (visibleCount === 0 && searchTerm !== '') {
                 noResults.style.display = '';

@@ -24,18 +24,33 @@ class Customer extends Model
 
     protected $dates = ['deleted_at'];
 
-    // Cast deleted_at as datetime
     protected $casts = [
         'deleted_at' => 'datetime',
     ];
 
-    // Relationship with sales transactions
+    // Phone masking accessor
+    public function getMaskedContactNumberAttribute()
+    {
+        $number = $this->Contact_Number;
+        if (!$number) return 'N/A';
+
+        // Remove any dashes/spaces to normalize
+        $clean = preg_replace('/[\s\-]/', '', $number);
+
+        // Mask middle digits: 0917-XXX-XXXX
+        // Keep first 4, mask next 3, keep last 4
+        if (strlen($clean) >= 11) {
+            return substr($clean, 0, 4) . '-XXX-' . substr($clean, -4);
+        }
+
+        return $number; // return as-is if format is unexpected
+    }
+
     public function salesTransactions()
     {
         return $this->hasMany(SalesTransaction::class, 'Customer_ID', 'Customer_ID');
     }
 
-    // Relationship with sales
     public function sales()
     {
         return $this->hasMany(SalesTransaction::class, 'Customer_ID', 'Customer_ID');

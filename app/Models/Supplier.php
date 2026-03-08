@@ -17,13 +17,31 @@ class Supplier extends Model
 
     protected $dates = ['deleted_at'];
 
-    // Optional: get products supplied
-    public function products() {
+    // Phone masking accessor
+    public function getMaskedContactNumberAttribute()
+    {
+        $number = $this->contact_number;
+        if (!$number) return 'N/A';
+
+        // Remove any dashes/spaces to normalize
+        $clean = preg_replace('/[\s\-]/', '', $number);
+
+        // Mask middle digits: 0917-XXX-XXXX
+        // Keep first 4, mask next 3, keep last 4
+        if (strlen($clean) >= 11) {
+            return substr($clean, 0, 4) . '-XXX-' . substr($clean, -4);
+        }
+
+        return $number; // return as-is if format is unexpected
+    }
+
+    public function products()
+    {
         return $this->hasMany(Product::class, 'Supplier_ID');
     }
 
-    // Relationship with supplier transactions
-    public function transactions() {
+    public function transactions()
+    {
         return $this->hasMany(SupplierTransaction::class, 'Supplier_ID');
     }
 }

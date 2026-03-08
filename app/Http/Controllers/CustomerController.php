@@ -9,7 +9,6 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        // Load customers with all sales
         $customers = Customer::with('sales')->get();
         return view('customers.index', compact('customers'));
     }
@@ -23,7 +22,7 @@ class CustomerController extends Controller
             'sales.details.product',
             'sales.user'
         ])->findOrFail($id);
-        
+
         return view('customers.show', compact('customer'));
     }
 
@@ -34,13 +33,17 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'Customer_Name' => 'required',
-            'Contact_Number' => 'nullable',
+        $validated = $request->validate([
+            'Customer_Name'  => 'required|string|max:255|unique:customers,Customer_Name',
+            'Contact_Number' => 'nullable|string|regex:/^[0-9]{11}$/',
+            'email'          => 'nullable|email|max:255',
+            'address'        => 'nullable|string|max:500',
         ]);
 
-        Customer::create($request->all());
-        return redirect()->route('customers.index')->with('success', 'Customer added successfully.');
+        Customer::create($validated);
+
+        return redirect()->route('customers.index')
+            ->with('success', 'Customer added successfully.');
     }
 
     public function edit($id)
@@ -51,14 +54,18 @@ class CustomerController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'Customer_Name' => 'required',
-            'Contact_Number' => 'nullable',
+        $validated = $request->validate([
+            'Customer_Name'  => 'required|string|max:255|unique:customers,Customer_Name,' . $id . ',Customer_ID',
+            'Contact_Number' => 'nullable|string|regex:/^[0-9]{11}$/',
+            'email'          => 'nullable|email|max:255',
+            'address'        => 'nullable|string|max:500',
         ]);
 
         $customer = Customer::findOrFail($id);
-        $customer->update($request->all());
-        return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
+        $customer->update($validated);
+
+        return redirect()->route('customers.index')
+            ->with('success', 'Customer updated successfully.');
     }
 
     // ============================
@@ -67,8 +74,10 @@ class CustomerController extends Controller
     public function destroy($id)
     {
         $customer = Customer::findOrFail($id);
-        $customer->delete(); // soft delete
-        return redirect()->route('customers.index')->with('success', 'Customer archived successfully.');
+        $customer->delete();
+
+        return redirect()->route('customers.index')
+            ->with('success', 'Customer archived successfully.');
     }
 
     // ============================
@@ -88,7 +97,8 @@ class CustomerController extends Controller
         $customer = Customer::withTrashed()->findOrFail($id);
         $customer->restore();
 
-        return redirect()->route('archive.customers')->with('success', 'Customer restored successfully.');
+        return redirect()->route('archive.customers')
+            ->with('success', 'Customer restored successfully.');
     }
 
     // ============================
@@ -99,6 +109,7 @@ class CustomerController extends Controller
         $customer = Customer::withTrashed()->findOrFail($id);
         $customer->forceDelete();
 
-        return redirect()->route('archive.customers')->with('success', 'Customer permanently deleted.');
+        return redirect()->route('archive.customers')
+            ->with('success', 'Customer permanently deleted.');
     }
 }

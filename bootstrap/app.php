@@ -11,9 +11,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Register your custom middleware alias here
+        // ✅ Trust all proxies
+        $middleware->trustProxies(at: '*');
+
+        // ✅ Exclude captcha from CSRF to prevent 419 session expiry
+        $middleware->validateCsrfTokens(except: [
+            '/captcha',
+        ]);
+
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'role'       => \App\Http\Middleware\CheckRole::class,
+            'blocked.ip' => \App\Http\Middleware\CheckBlockedIp::class,
+        ]);
+
+        // ✅ Apply IP block check to all web routes
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckBlockedIp::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

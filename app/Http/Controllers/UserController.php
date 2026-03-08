@@ -11,31 +11,30 @@ use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
-    /**
-     * Show the form for creating a new cashier.
-     */
+    // ─────────────────────────────────────────────────────────
+    // Create Cashier
+    // ─────────────────────────────────────────────────────────
+
     public function createCashier()
     {
         return view('users.create-cashier');
     }
 
-    /**
-     * Store a newly created cashier account.
-     */
     public function storeCashier(Request $request)
     {
         $validated = $request->validate([
-            'fname'           => 'required|string|max:255',
-            'lname'           => 'required|string|max:255',
-            'contact_number'  => 'nullable|string|max:20',
-            'email'           => 'required|string|email|max:255|unique:users,email',
-            'password'        => ['required', 'confirmed', Password::min(8)],
+            'fname'          => 'required|string|alpha_dash|max:255',
+            'lname'          => 'required|string|alpha_dash|max:255',
+            'contact_number' => 'nullable|string|regex:/^[0-9]{11}$/',
+            'email'          => 'required|string|email|max:255|unique:users,email',
+            'password'       => [
+                'required', 'confirmed',
+                Password::min(16)->mixedCase()->numbers()->symbols(),
+            ],
         ]);
 
         DB::beginTransaction();
-
         try {
-            // Save in USERS TABLE
             User::create([
                 'fname'          => $validated['fname'],
                 'lname'          => $validated['lname'],
@@ -45,7 +44,6 @@ class UserController extends Controller
                 'password'       => Hash::make($validated['password']),
             ]);
 
-            // Save in CASHIERS TABLE
             Cashier::create([
                 'first_name'     => $validated['fname'],
                 'last_name'      => $validated['lname'],
@@ -55,40 +53,36 @@ class UserController extends Controller
             ]);
 
             DB::commit();
-
-            return redirect()
-                ->route('users.create-cashier')
+            return redirect()->route('users.create-cashier')
                 ->with('success', 'Cashier account created successfully!');
 
         } catch (\Throwable $e) {
-
             DB::rollBack();
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Failed to create cashier: '.$e->getMessage()]);
+            return back()->withInput()
+                ->withErrors(['error' => 'Failed to create cashier: ' . $e->getMessage()]);
         }
     }
 
-    /**
-     * Show the form for creating a new manager.
-     */
+    // ─────────────────────────────────────────────────────────
+    // Create Manager
+    // ─────────────────────────────────────────────────────────
+
     public function createManager()
     {
         return view('users.create-manager');
     }
 
-    /**
-     * Store a newly created manager account.
-     */
     public function storeManager(Request $request)
     {
         $validated = $request->validate([
-            'fname'           => 'required|string|max:255',
-            'lname'           => 'required|string|max:255',
-            'contact_number'  => 'nullable|string|max:20',
-            'email'           => 'required|string|email|max:255|unique:users,email',
-            'password'        => ['required', 'confirmed', Password::min(8)],
+            'fname'          => 'required|string|alpha_dash|max:255',
+            'lname'          => 'required|string|alpha_dash|max:255',
+            'contact_number' => 'nullable|string|regex:/^[0-9]{11}$/',
+            'email'          => 'required|string|email|max:255|unique:users,email',
+            'password'       => [
+                'required', 'confirmed',
+                Password::min(16)->mixedCase()->numbers()->symbols(),
+            ],
         ]);
 
         User::create([
@@ -100,59 +94,122 @@ class UserController extends Controller
             'password'       => Hash::make($validated['password']),
         ]);
 
-        return redirect()
-            ->route('users.create-manager')
+        return redirect()->route('users.create-manager')
             ->with('success', 'Manager account created successfully!');
     }
 
-    /**
-     * Display all users.
-     */
+    // ─────────────────────────────────────────────────────────
+    // Index
+    // ─────────────────────────────────────────────────────────
+
     public function index()
     {
         $users = User::orderBy('created_at', 'desc')->get();
         return view('users.index', compact('users'));
     }
 
-    /**
-     * Delete a user account.
-     */
-    public function destroy(User $user)
+    // ─────────────────────────────────────────────────────────
+    // Edit / Update
+    // ─────────────────────────────────────────────────────────
+
+    public function edit(User $user)
+    {
+        return view('users.edit', compact('user'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'fname'          => 'required|string|alpha_dash|max:255',
+            'lname'          => 'required|string|alpha_dash|max:255',
+            'contact_number' => 'nullable|string|regex:/^[0-9]{11}$/',
+            'email'          => 'required|string|email|max:255|unique:users,email,' . $user->User_ID . ',User_ID',
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('users.index')
+            ->with('success', "{$user->fname} {$user->lname} updated successfully!");
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Archive (soft delete)
+    // ─────────────────────────────────────────────────────────
+
+    public function archive(User $user)
     {
         if ($user->role === 'admin') {
-            return redirect()
-                ->back()
+            return redirect()->route('users.index')
+                ->with('error', 'Cannot archive admin accounts!');
+        }
+
+        $name = "{$user->fname} {$user->lname}";
+        $user->delete();
+
+        return redirect()->route('users.index')
+            ->with('success', "{$name} has been archived.");
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Archived list
+    // ─────────────────────────────────────────────────────────
+
+    public function archived()
+    {
+        $users = User::onlyTrashed()->orderBy('deleted_at', 'desc')->get();
+        return view('users.archived', ['users' => $users]);
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Restore
+    // ─────────────────────────────────────────────────────────
+
+    public function restore($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+
+        return redirect()->route('users.archived')
+            ->with('success', "{$user->fname} {$user->lname} has been restored.");
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Force delete (permanent)
+    // ─────────────────────────────────────────────────────────
+
+    public function destroy($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        if ($user->role === 'admin') {
+            return redirect()->route('users.archived')
                 ->with('error', 'Cannot delete admin accounts!');
         }
 
-        $user->delete();
+        $name = "{$user->fname} {$user->lname}";
+        $user->forceDelete();
 
-        return redirect()
-            ->back()
-            ->with('success', 'User account deleted successfully!');
+        return redirect()->route('users.archived')
+            ->with('success', "{$name} has been permanently deleted.");
     }
 
-    /**
-     * Display all cashiers.
-     */
+    // ─────────────────────────────────────────────────────────
+    // List Cashiers / Managers
+    // ─────────────────────────────────────────────────────────
+
     public function listCashiers()
     {
         $cashiers = User::where('role', 'cashier')
             ->orderBy('created_at', 'desc')
             ->get();
-
         return view('users.list-cashiers', compact('cashiers'));
     }
 
-    /**
-     * Display all managers.
-     */
     public function listManagers()
     {
         $managers = User::where('role', 'manager')
             ->orderBy('created_at', 'desc')
             ->get();
-
         return view('users.list-managers', compact('managers'));
     }
 }

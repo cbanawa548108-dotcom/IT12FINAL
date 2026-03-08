@@ -3,79 +3,87 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
+    use SoftDeletes;
+
     protected $primaryKey = 'User_ID';
 
     protected $fillable = [
-        'fname', 'lname', 'contact_number', 'role', 'email', 'password'
+        'fname', 'lname', 'contact_number', 'role', 'email', 'password',
+        'two_factor_code', 'two_factor_expires_at',
     ];
 
-    protected $hidden = [
-        'password',
-    ];
+    protected $hidden = ['password'];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $dates = ['deleted_at'];
+
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            'password'              => 'hashed',
+            'two_factor_expires_at' => 'datetime',
         ];
     }
 
-    // ============================================
-    // ROLE HELPER METHODS
-    // ============================================
+    // ── Masked Accessors ─────────────────────────────────────
 
-    /**
-     * Check if user is an admin
-     */
-    public function isAdmin()
+    public function getMaskedEmailAttribute(): string
     {
-        return $this->role === 'admin';
+        $parts  = explode('@', $this->email);
+        $name   = $parts[0] ?? '';
+        $domain = $parts[1] ?? '';
+        return substr($name, 0, 2) . str_repeat('*', max(strlen($name) - 2, 3)) . '@' . $domain;
     }
 
-    /**
-     * Check if user is a manager
-     */
-    public function isManager()
+    public function getMaskedContactNumberAttribute(): ?string
     {
-        return $this->role === 'manager';
+        $phone = $this->contact_number;
+        if (!$phone) return null;
+        return substr($phone, 0, 3) . str_repeat('*', max(strlen($phone) - 6, 3)) . substr($phone, -3);
     }
 
-    /**
-     * Check if user is a cashier
-     */
-    public function isCashier()
+    // ── 2FA helpers ──────────────────────────────────────────
+
+    public function generateTwoFactorCode(): string
     {
-        return $this->role === 'cashier';
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $this->update([
+            'two_factor_code'       => $code,
+            'two_factor_expires_at' => now()->addMinutes(10),
+        ]);
+
+        return $code;
     }
 
-    /**
-     * Check if user has a specific role
-     */
-    public function hasRole($role)
+    public function clearTwoFactorCode(): void
     {
-        return $this->role === $role;
+        $this->update([
+            'two_factor_code'       => null,
+            'two_factor_expires_at' => null,
+        ]);
     }
 
-    /**
-     * Check if user has any of the given roles
-     */
-    public function hasAnyRole(array $roles)
+    public function isValidTwoFactorCode(string $code): bool
     {
-        return in_array($this->role, $roles);
+        return $this->two_factor_code === $code
+            && $this->two_factor_expires_at
+            && now()->lessThanOrEqualTo($this->two_factor_expires_at);
     }
 
-    /**
-     * Get user's full name
-     */
-    public function getFullNameAttribute()
+    // ── Role helpers ─────────────────────────────────────────
+
+    public function isAdmin(): bool   { return $this->role === 'admin'; }
+    public function isManager(): bool { return $this->role === 'manager'; }
+    public function isCashier(): bool { return $this->role === 'cashier'; }
+
+    public function hasRole($role): bool           { return $this->role === $role; }
+    public function hasAnyRole(array $roles): bool { return in_array($this->role, $roles); }
+
+    public function getFullNameAttribute(): string
     {
         return "{$this->fname} {$this->lname}";
     }
